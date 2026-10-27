@@ -1,0 +1,37 @@
+{
+  "key": "HD-HP1234",
+  "type": "invoice",
+  "issuer": "vju-hocphi",
+  "status": "drafted",
+  "provider": "vnpt",
+  "provider_key": "VJU-ENR-HD-HP1234",
+  "pattern": "1/001",
+  "serial": "C26TAB",
+  "number": null,
+  "issued_on": "2026-10-27",
+  "buyer": {
+    "code": "22110001",
+    "name": "Nguyễn Văn A",
+    "legal_name": null,
+    "tax_code": null,
+    "id_number": "001204000001",
+    "address": "Hà Nội",
+    "email": "a@vju.ac.vn",
+    "phone": null
+  },
+  "payment_method": "CK",
+  "currency": "VND",
+  "items": [
+    { "name": "Học phí học kỳ 1 năm học 2026-2027", "unit": "Khoản", "quantity": 1, "unit_price": 1200000, "amount": 1200000, "vat_rate": "KCT" }
+  ],
+  "subtotal": 1200000,
+  "vat_amount": 0,
+  "total": 1200000,
+  "total_in_words": "Một triệu hai trăm nghìn đồng chẵn",
+  "reference": { "payment_ref": "HP1234", "payment_id": 5012 },
+  "view_url": null,
+  "error": null,
+  "metadata": {},
+  "created_at": "…",
+  "updated_at": "…"
+}

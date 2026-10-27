@@ -1,0 +1,12 @@
+{
+  "key": "HD-HP1234",
+  "type": "invoice",
+  "issuer": "vju-hocphi",
+  "issued_on": "2026-10-27",
+  "buyer": { "code": "22110001", "name": "Nguyễn Văn A", "id_number": "001204000001", "address": "Hà Nội", "email": "a@vju.ac.vn" },
+  "payment_method": "CK",
+  "items": [{ "name": "Học phí học kỳ 1", "unit": "Khoản", "quantity": 1, "unit_price": 1200000, "vat_rate": "KCT" }],
+  "reference": { "payment_ref": "HP1234", "payment_id": 5012 },
+  "send_email": true,
+  "metadata": {}
+}
