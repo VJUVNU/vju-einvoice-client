@@ -156,6 +156,8 @@ public function handle(DocumentIssued $e): void
   Listener chỉ ghi CSDL trên cùng kết nối thì việc ghi và dòng chống trùng cùng thành hoặc cùng mất.
 - Listener làm việc ngoài CSDL (gửi mail, gọi API) rồi mới ném lỗi thì việc đó chạy lại ở lần giao sau → phải tự
   idempotent. Listener `ShouldQueue` đặt `public $afterCommit = true;`.
+- Webhook phải trả lời trong **10 giây** (quá thì dịch vụ coi là hỏng và gửi lại). Listener đồng bộ chậm nên
+  chuyển sang `ShouldQueue` + `$afterCommit = true`.
 - Để `EINVOICE_DB_CONNECTION` trống để listener ghi cùng transaction.
 
 ## Kéo dự phòng: `einvoice:pull`
