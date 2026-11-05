@@ -313,4 +313,50 @@ class EinvoiceClientTest extends TestCase
         $this->assertSame('ok', $this->app->make(EinvoiceClient::class)->health()['checks']['providers']['vnpt']);
         Http::assertSent(fn (Request $r) => ! $r->hasHeader('X-Vju-Signature'));
     }
+
+    public function test_provider_key_is_sent_only_when_set(): void
+    {
+        Http::fake([self::URL.'/api/v1/documents' => Http::response($this->document(), 202)]);
+
+        Einvoice::createDocument($this->request());
+        Einvoice::createDocument($this->request()->providerKey('VJU-42-22110001'));
+
+        $bodies = array_map(fn ($pair) => json_decode($pair[0]->body(), true), Http::recorded()->all());
+        $this->assertArrayNotHasKey('provider_key', $bodies[0]);
+        $this->assertSame('VJU-42-22110001', $bodies[1]['provider_key']);
+    }
+
+    public function test_pdf_is_signed_get_returning_raw_bytes(): void
+    {
+        Http::fake([self::URL.'/api/v1/documents/HD-HP1234/pdf' => Http::response("%PDF-1.4
+noi dung", 200, ['Content-Type' => 'application/pdf'])]);
+
+        $this->assertSame("%PDF-1.4
+noi dung", Einvoice::pdf('HD-HP1234'));
+        Http::assertSent(function (Request $request) {
+            $this->assertSignedRequest($request, 'GET', '/api/v1/documents/HD-HP1234/pdf');
+
+            return true;
+        });
+    }
+
+    public function test_pdf_of_unsigned_document_is_conflict(): void
+    {
+        Http::fake([self::URL.'/*' => Http::response(['error' => ['code' => 'document_not_issued', 'message' => 'Chưa ký']], 409)]);
+
+        try {
+            Einvoice::pdf('HD-HP1234');
+            $this->fail('Phải ném ConflictException.');
+        } catch (ConflictException $e) {
+            $this->assertSame('document_not_issued', $e->errorCode);
+        }
+    }
+
+    public function test_pdf_body_that_is_not_pdf_is_invalid_payload(): void
+    {
+        Http::fake([self::URL.'/*' => Http::response('<html>lỗi</html>', 200)]);
+
+        $this->expectException(InvalidPayloadException::class);
+        Einvoice::pdf('HD-HP1234');
+    }
 }

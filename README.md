@@ -97,6 +97,8 @@ $chungTu = Einvoice::createDocument(
 - Builder bất biến: mỗi hàm trả bản mới. Tổ chức: `Buyer::make(...)->legalName(...)->taxCode(...)`.
 - `->receipt()` cho biên lai (v1: dịch vụ trả 422 nếu đơn vị phát hành chưa khai mẫu biên lai);
   `->paymentMethod('TM' | 'CK' | 'TM/CK')` (mặc định `CK`); `->issuedOn(...)` (mặc định hôm nay).
+- `->providerKey('VJU-42-22110001')` giữ fkey VNPT cũ khi chuyển từ hệ thống tự gọi VNPT, để VNPT không lập
+  hoá đơn thứ hai. Dịch vụ chỉ nhận khi app bật "Cho app tự đặt provider_key" (không thì 422).
 - Lỗi lập trình (thiếu dòng, `quantity` ≤ 0…) ném `InvalidArgumentException` trước khi gửi.
 
 ```php
@@ -104,6 +106,7 @@ Einvoice::getDocument('HD-HP1234');                 // Document
 Einvoice::getDocument('HD-HP1234', refresh: true);  // hỏi lại nhà cung cấp (chậm)
 Einvoice::cancelDocument('HD-HP1234');              // chỉ khi chưa ký
 Einvoice::changes(cursor: 800, limit: 100);         // DocumentPage
+Einvoice::pdf('HD-HP1234');                         // nhị phân PDF; chưa ký → ConflictException (document_not_issued)
 ```
 
 Muốn tiêm phụ thuộc thì type-hint `Vju\EinvoiceClient\Contracts\EinvoiceService` để `fake()` thay được.

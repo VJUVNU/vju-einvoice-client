@@ -9,6 +9,7 @@ use Vju\EinvoiceClient\Data\Document;
 use Vju\EinvoiceClient\Data\DocumentPage;
 use Vju\EinvoiceClient\Data\DocumentRequest;
 use Vju\EinvoiceClient\Data\Item;
+use Vju\EinvoiceClient\Exceptions\ConflictException;
 use Vju\EinvoiceClient\Exceptions\DocumentLockedException;
 use Vju\EinvoiceClient\Exceptions\NotFoundException;
 use Vju\EinvoiceClient\Support\Inbox;
@@ -120,6 +121,21 @@ class FakeEinvoice implements EinvoiceService
             $page === [] ? $cursor : end($page)['change_id'],
             count($after) > count($page),
         );
+    }
+
+    public function pdf(string $key): string
+    {
+        $this->throwIfFailing();
+
+        $document = $this->find($key);
+        if ($document['status'] !== Document::STATUS_ISSUED) {
+            throw new ConflictException("Chứng từ {$key} chưa được ký/phát hành nên chưa có PDF.", 409, 'document_not_issued');
+        }
+
+        return "%PDF-1.4
+% hoá đơn giả {$key} số {$document['number']}
+%%EOF
+";
     }
 
     // ---- Điều khiển bản giả --------------------------------------------------------------------
@@ -267,7 +283,7 @@ class FakeEinvoice implements EinvoiceService
             'issuer' => $request->issuer,
             'status' => Document::STATUS_QUEUED,
             'provider' => 'vnpt',
-            'provider_key' => $existing['provider_key'] ?? substr('VJU-FAKE-'.$request->key, 0, 50),
+            'provider_key' => $existing['provider_key'] ?? $request->providerKey ?? substr('VJU-FAKE-'.$request->key, 0, 50),
             'pattern' => $existing['pattern'] ?? '1/001',
             'serial' => $existing['serial'] ?? 'C26TAB',
             'number' => null,

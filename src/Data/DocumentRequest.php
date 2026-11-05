@@ -44,6 +44,7 @@ final class DocumentRequest
         public readonly ?array $reference = null,
         public readonly ?bool $sendEmail = null,
         public readonly ?array $metadata = null,
+        public readonly ?string $providerKey = null,
     ) {}
 
     /**
@@ -62,6 +63,7 @@ final class DocumentRequest
         ?array $reference = null,
         ?bool $sendEmail = null,
         ?array $metadata = null,
+        ?string $providerKey = null,
     ): self {
         return new self(
             key: $key,
@@ -74,6 +76,7 @@ final class DocumentRequest
             reference: $reference,
             sendEmail: $sendEmail,
             metadata: $metadata,
+            providerKey: $providerKey,
         );
     }
 
@@ -147,6 +150,15 @@ final class DocumentRequest
     }
 
     /**
+     * Giữ khoá chống trùng đã dùng ở nhà cung cấp (fkey VNPT) khi chuyển từ hệ thống cũ — chỉ được
+     * khi app bật "Cho app tự đặt provider_key" trên dịch vụ.
+     */
+    public function providerKey(string $providerKey): self
+    {
+        return $this->with(['providerKey' => $providerKey]);
+    }
+
+    /**
      * @throws InvalidArgumentException
      */
     public function validate(): void
@@ -201,6 +213,7 @@ final class DocumentRequest
             'key' => $this->key,
             'type' => $this->type,
             'issuer' => $this->issuer,
+            'provider_key' => $this->providerKey,
             'issued_on' => $this->issuedOn,
             'buyer' => $this->buyer?->toArray(),
             'payment_method' => $this->paymentMethod,

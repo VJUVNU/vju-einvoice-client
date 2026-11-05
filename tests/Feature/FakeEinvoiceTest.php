@@ -14,6 +14,7 @@ use Vju\EinvoiceClient\Events\DocumentCancelled;
 use Vju\EinvoiceClient\Events\DocumentDrafted;
 use Vju\EinvoiceClient\Events\DocumentFailed;
 use Vju\EinvoiceClient\Events\DocumentIssued;
+use Vju\EinvoiceClient\Exceptions\ConflictException;
 use Vju\EinvoiceClient\Exceptions\DocumentLockedException;
 use Vju\EinvoiceClient\Exceptions\IssuerNotAllowedException;
 use Vju\EinvoiceClient\Exceptions\NotFoundException;
@@ -191,5 +192,24 @@ class FakeEinvoiceTest extends TestCase
 
         $this->assertSame('vju-dichvu', $doc->issuer);
         $fake->assertDocumentCreated(fn (DocumentRequest $r) => $r->issuer === 'vju-dichvu');
+    }
+
+    public function test_pdf_and_provider_key_on_fake(): void
+    {
+        Event::fake([DocumentIssued::class]);
+        $fake = Einvoice::fake();
+
+        $doc = Einvoice::createDocument($this->request()->providerKey('VJU-7-22110001'));
+        $this->assertSame('VJU-7-22110001', $doc->providerKey);
+
+        try {
+            Einvoice::pdf('HD-HP1');
+            $this->fail('Chứng từ chưa ký không có PDF.');
+        } catch (ConflictException $e) {
+            $this->assertSame('document_not_issued', $e->errorCode);
+        }
+
+        $fake->simulateIssued('HD-HP1', '0000123');
+        $this->assertStringStartsWith('%PDF', Einvoice::pdf('HD-HP1'));
     }
 }

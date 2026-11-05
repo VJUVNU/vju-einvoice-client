@@ -78,6 +78,22 @@ class EinvoiceClient implements EinvoiceService
         return DocumentPage::fromArray($body, $cursor);
     }
 
+    public function pdf(string $key): string
+    {
+        $response = $this->call('GET', '/documents/'.rawurlencode($key).'/pdf');
+
+        if (! $response->successful()) {
+            throw ErrorMapper::map($response->status(), $this->decode($response));
+        }
+
+        $body = $response->body();
+        if (! str_starts_with($body, '%PDF')) {
+            throw new InvalidPayloadException('Dịch vụ hoá đơn điện tử trả về không phải PDF.', $response->status());
+        }
+
+        return $body;
+    }
+
     /**
      * GET /api/health — không ký.
      *
@@ -96,6 +112,29 @@ class EinvoiceClient implements EinvoiceService
      * @return array<string, mixed>
      */
     public function request(string $method, string $path, array $query = [], ?array $payload = null): array
+    {
+        $response = $this->call($method, $path, $query, $payload);
+        $json = $this->decode($response);
+
+        if (! $response->successful()) {
+            throw ErrorMapper::map($response->status(), $json);
+        }
+
+        if ($json === null) {
+            throw new InvalidPayloadException(
+                "Dịch vụ hoá đơn điện tử trả HTTP {$response->status()} nhưng thân không phải JSON.",
+                $response->status(),
+            );
+        }
+
+        return $json;
+    }
+
+    /**
+     * @param  array<string, scalar>  $query
+     * @param  array<string, mixed>|null  $payload
+     */
+    protected function call(string $method, string $path, array $query = [], ?array $payload = null): Response
     {
         $method = strtoupper($method);
         $key = (string) ($this->config['key'] ?? '');
@@ -120,8 +159,7 @@ class EinvoiceClient implements EinvoiceService
             $headers = RequestSignature::headers($key, $secret, $method, $signedPath, $query, $body);
 
             try {
-                $response = $this->send($method, $url, $headers, $body);
-                break;
+                return $this->send($method, $url, $headers, $body);
             } catch (ConnectionException $e) {
                 if ($attempt >= $attempts) {
                     throw new EinvoiceException(
@@ -135,21 +173,6 @@ class EinvoiceClient implements EinvoiceService
                 usleep(max(0, (int) ($this->config['retry_sleep_ms'] ?? 0)) * 1000 * $attempt);
             }
         }
-
-        $json = $this->decode($response);
-
-        if (! $response->successful()) {
-            throw ErrorMapper::map($response->status(), $json);
-        }
-
-        if ($json === null) {
-            throw new InvalidPayloadException(
-                "Dịch vụ hoá đơn điện tử trả HTTP {$response->status()} nhưng thân không phải JSON.",
-                $response->status(),
-            );
-        }
-
-        return $json;
     }
 
     /**

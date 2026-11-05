@@ -36,4 +36,9 @@ interface EinvoiceService
      * GET /documents?cursor=…&limit=… — nguồn thay đổi để kéo dự phòng.
      */
     public function changes(int $cursor = 0, ?int $limit = null): DocumentPage;
+
+    /**
+     * GET /documents/{key}/pdf — nhị phân PDF bản thể hiện; chỉ chứng từ đã ký (409 document_not_issued).
+     */
+    public function pdf(string $key): string;
 }

@@ -2,6 +2,18 @@
 
 Định dạng theo [Keep a Changelog](https://keepachangelog.com/vi/1.1.0/), đánh số theo [SemVer](https://semver.org/lang/vi/).
 
+## [0.2.0] — 2026-11-05
+
+### Thêm
+
+- `Einvoice::pdf($key)` — tải PDF bản thể hiện của chứng từ đã ký (`GET /documents/{key}/pdf`); bản giả trả PDF
+  giả khi chứng từ đã `issued`, ném `ConflictException` (`document_not_issued`) khi chưa.
+- `DocumentRequest::providerKey()` — gửi `provider_key` để giữ fkey cũ của nhà cung cấp khi chuyển hệ thống.
+
+### Đổi
+
+- `EinvoiceService` có thêm `pdf()`: lớp nào tự cài interface này phải thêm hàm đó.
+
 ## [0.1.0] — 2026-10-27
 
 Bản đầu tiên, theo hợp đồng `einvoice-api-v1` của Dịch vụ hoá đơn điện tử VJU.
